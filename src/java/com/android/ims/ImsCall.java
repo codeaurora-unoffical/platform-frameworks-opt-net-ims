@@ -1689,9 +1689,11 @@ public class ImsCall implements ICall {
                 Uri endpointUri = Uri.parse(endpoint);
                 int connectionState = ImsConferenceState.getConnectionStateForStatus(status);
 
-                ConferenceParticipant conferenceParticipant = new ConferenceParticipant(handle,
-                        displayName, endpointUri, connectionState);
-                conferenceParticipants.add(conferenceParticipant);
+                if (connectionState != Connection.STATE_DISCONNECTED) {
+                    ConferenceParticipant conferenceParticipant = new ConferenceParticipant(handle,
+                            displayName, endpointUri, connectionState);
+                    conferenceParticipants.add(conferenceParticipant);
+                }
                 continue;
             }
 
