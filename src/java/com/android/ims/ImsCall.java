@@ -2208,6 +2208,10 @@ public class ImsCall implements ICall {
                         ", reasonInfo=" + reasonInfo);
             }
 
+            synchronized (mLockObj) {
+                mHold = true;
+            }
+
             ImsCall.Listener listener;
 
             synchronized(ImsCall.this) {
