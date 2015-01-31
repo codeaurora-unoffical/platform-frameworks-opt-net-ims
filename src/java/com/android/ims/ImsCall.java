@@ -408,9 +408,16 @@ public class ImsCall implements ICall {
         public void onCallHandoverFailed(ImsCall imsCall, int srcAccessTech, int targetAccessTech,
             ImsReasonInfo reasonInfo) {
         }
+        /**
+         * Called when the call supp service is received
+         * The default implementation calls {@link #onCallStateChanged}.
+         *
+         * @param call the call object that carries out the IMS call
+         */
+        public void onCallSuppServiceReceived(ImsCall call,
+            ImsSuppServiceNotification suppServiceInfo) {
+        }
     }
-
-
 
     // List of update operation for IMS call control
     private static final int UPDATE_NONE = 0;
@@ -2966,6 +2973,34 @@ public class ImsCall implements ICall {
                         reasonInfo);
                 } catch (Throwable t) {
                     loge("callSessionHandoverFailed :: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionSuppServiceReceived(ImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo ) {
+            if (isTransientConferenceSession(session)) {
+                log("callSessionSuppServiceReceived :: not supported for transient conference"
+                        + " session=" + session);
+                return;
+            }
+            if (DBG) {
+                log("callSessionSuppServiceReceived :: session=" + session +
+                         ", suppServiceInfo" + suppServiceInfo);
+            }
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallSuppServiceReceived(ImsCall.this, suppServiceInfo);
+                } catch (Throwable t) {
+                    loge("callSessionSuppServiceReceived :: ", t);
                 }
             }
         }
