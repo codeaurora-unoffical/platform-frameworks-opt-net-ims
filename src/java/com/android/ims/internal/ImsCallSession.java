@@ -23,6 +23,7 @@ import com.android.ims.ImsConferenceState;
 import com.android.ims.ImsReasonInfo;
 import com.android.ims.ImsStreamMediaProfile;
 import android.telecom.Connection;
+import com.android.ims.ImsSuppServiceNotification;
 
 /**
  * Provides the call initiation/termination, and media exchange between two IMS endpoints.
@@ -388,6 +389,15 @@ public class ImsCallSession {
         public void callSessionRetryErrorReceived(ImsCallSession session,
                 ImsReasonInfo reasonInfo) {
             // no-op
+        }
+
+        /**
+         * Called when the session supplementary service is received
+         *
+         * @param session the session object that carries out the IMS session
+         */
+        public void callSessionSuppServiceReceived(ImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo) {
         }
     }
 
@@ -1247,6 +1257,13 @@ public class ImsCallSession {
                 ImsReasonInfo reasonInfo) {
             if (mListener != null) {
                 mListener.callSessionRetryErrorReceived(ImsCallSession.this, reasonInfo);
+            }
+        }
+
+        public void callSessionSuppServiceReceived(IImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo ) {
+            if (mListener != null) {
+                mListener.callSessionSuppServiceReceived(ImsCallSession.this, suppServiceInfo);
             }
         }
     }
