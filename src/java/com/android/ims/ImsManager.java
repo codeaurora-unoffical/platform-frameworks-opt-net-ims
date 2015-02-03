@@ -327,6 +327,25 @@ public class ImsManager {
                         com.android.internal.R.bool.config_carrier_vt_available);
     }
 
+    /**
+     * Returns the user configuration of IMS to CS retry setting
+     */
+    public static boolean isCsRetrySettingEnabledByUser(Context context) {
+        int enabled = android.provider.Settings.Global.getInt(
+                    context.getContentResolver(),
+                    android.provider.Settings.Global.IMS_TO_CS_RETRY_ENABLED,
+                    ImsConfig.FeatureValueConstants.ON);
+        return (enabled == 1)? true:false;
+    }
+
+    /**
+     * Returns the platform configuration of IMS to CS retry setting
+     */
+    public static boolean isCsRetrySettingEnabledByPlatform(Context context) {
+        return  context.getResources().getBoolean(
+                        com.android.internal.R.bool.config_carrier_cs_retry_available);
+    }
+
     private ImsManager(Context context, int phoneId) {
         mContext = context;
         mPhoneId = phoneId;
