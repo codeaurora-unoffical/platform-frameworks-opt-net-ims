@@ -26,6 +26,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
+import android.provider.Settings;
 import android.telephony.Rlog;
 import android.telephony.TelephonyManager;
 
@@ -140,6 +141,18 @@ public class ImsManager {
      */
     public static final String EXTRA_USSD = "android:ussd";
 
+    /**
+     * Part of the ACTION_IMS_INCOMING_CALL intents.
+     * A boolean value; Flag to indicate whether the call is an unknown
+     * dialing call. Such calls are originated by sending commands (like
+     * AT commands) directly to modem without Android involvement.
+     * Even though they are not incoming calls, they are propagated
+     * to Phone app using same ACTION_IMS_INCOMING_CALL intent.
+     * Internal use only.
+     * @hide
+     */
+    public static final String EXTRA_IS_UNKNOWN_CALL = "codeaurora:isUnknown";
+
     private static final String TAG = "ImsManager";
     private static final boolean DBG = true;
 
@@ -181,9 +194,13 @@ public class ImsManager {
      * Returns the user configuration of Enhanced 4G LTE Mode setting
      */
     public static boolean isEnhanced4gLteModeSettingEnabledByUser(Context context) {
-        return context.getSharedPreferences(IMS_SHARED_PREFERENCES,
-                Context.MODE_WORLD_READABLE).getBoolean(KEY_IMS_ON,
-                IMS_DEFAULT_SETTING);
+        boolean imsEnabled = IMS_DEFAULT_SETTING;
+        try {
+            imsEnabled = (Settings.System.getInt(context.getContentResolver(),
+                    KEY_IMS_ON)) == 1 ? true : false;
+        } catch(Exception e) {
+        }
+        return imsEnabled;
     }
 
     /**
