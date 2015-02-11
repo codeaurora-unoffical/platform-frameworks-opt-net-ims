@@ -1908,11 +1908,13 @@ public class ImsCall implements ICall {
                     neutralReferrer.mCallGroup = null;
                 }
             } else {
-                // This is an interesting state that needs to be logged since we
-                // should only be going through this workflow for new conference calls
-                // and not merges into existing conferences (which a null transient
-                // session would imply)
-                log("processMergeComplete :: ERROR no transient session");
+                // In calls initiated from Conference URI dialpad and in MT conference
+                // scenarios, there wont be transient conference session.
+                // Set groupOwner in these cases thereby making them ready for further
+                // merge operations.
+                listener = null;
+                mCallGroup.setOwner(ImsCall.this);
+                log("processMergeComplete :: NO transient session. Possible MT Conf or Conf URI call");
             }
             // Clear some flags.  If the merge eventually worked, we can safely
             // ignore the call terminated message for the old session since we closed it already.
@@ -2491,6 +2493,26 @@ public class ImsCall implements ICall {
             }
 
             ImsCall.Listener listener;
+            CallGroup callGroup = getCallGroup();
+
+            // If there is an established session without a callGroup
+            // Create a callGroup and trigger merge complete operation.
+            // Below condition evaluates to TRUE for eg. for MT conference
+            // or Conference calls formed from conference uri dialpad etc
+            if (session.isMultiparty()
+                    && session.getState() == ImsCallSession.State.ESTABLISHED
+                    && callGroup == null) {
+
+                synchronized(mLockObj) {
+                    createCallGroup(ImsCall.this);
+                }
+
+                synchronized(ImsCall.this) {
+                    mSession = session;
+                }
+
+                processMergeComplete();
+            }
 
             synchronized(ImsCall.this) {
                 listener = mListener;
