@@ -245,6 +245,14 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
     }
 
     /** @inheritDoc */
+    public void onRequestConnectionDataUsage() {
+        try {
+            mVideoCallProvider.requestCallDataUsage();
+        } catch (RemoteException e) {
+        }
+    }
+
+    /** @inheritDoc */
     public void onSetPauseImage(String uri) {
         try {
             mVideoCallProvider.setPauseImage(uri);
