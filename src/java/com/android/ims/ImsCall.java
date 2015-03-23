@@ -28,9 +28,13 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Message;
+import android.provider.Settings;
 import android.telecom.ConferenceParticipant;
 import android.telecom.Connection;
+import android.telecom.TelecomManager;
 import android.telephony.Rlog;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.android.ims.internal.CallGroup;
 import com.android.ims.internal.CallGroupManager;
@@ -54,7 +58,9 @@ public class ImsCall implements ICall {
     public static final int USSD_MODE_REQUEST = 1;
 
     private static final String TAG = "ImsCall";
-    private static final boolean DBG = true;
+    private static final boolean FORCE_DEBUG = false; /* STOPSHIP if true */
+    private static final boolean DBG = FORCE_DEBUG || Rlog.isLoggable(TAG, Log.DEBUG);
+    private static final boolean VDBG = FORCE_DEBUG || Rlog.isLoggable(TAG, Log.VERBOSE);
 
     private List<ConferenceParticipant> mConferenceParticipants;
     private boolean mIsCEPPresent = false;
@@ -366,6 +372,16 @@ public class ImsCall implements ICall {
          *      Refer to CALL_STATE_* in {@link ImsCall}
          */
         public void onCallStateChanged(ImsCall call, int state) {
+            // no-op
+        }
+
+        /**
+         * Called when TTY mode of remote party changed
+         *
+         * @param call the call object that carries out the IMS call
+         * @param mode TTY mode of remote party
+         */
+        public void onCallSessionTtyModeReceived(ImsCall call, int mode) {
             // no-op
         }
     }
@@ -2841,6 +2857,28 @@ public class ImsCall implements ICall {
                 }
             }
         }
+
+        @Override
+        public void callSessionTtyModeReceived(ImsCallSession session, int mode) {
+            if (DBG) {
+                log("callSessionTtyModeReceived :: session=" + session
+                        + ", mode=" + mode);
+            }
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallSessionTtyModeReceived(ImsCall.this, mode);
+                } catch (Throwable t) {
+                    loge("callSessionTtyModeReceived :: ", t);
+                }
+            }
+        }
     }
 
     /**
@@ -2867,5 +2905,55 @@ public class ImsCall implements ICall {
                 loge("callSessionConferenceStateUpdated :: ", t);
             }
         }
+    }
+
+    /**
+     * Provides a human-readable string representation of an update request.
+     *
+     * @param updateRequest The update request.
+     * @return The string representation.
+     */
+    private String updateRequestToString(int updateRequest) {
+        switch (updateRequest) {
+            case UPDATE_NONE:
+                return "NONE";
+            case UPDATE_HOLD:
+                return "HOLD";
+            case UPDATE_HOLD_MERGE:
+                return "HOLD_MERGE";
+            case UPDATE_RESUME:
+                return "RESUME";
+            case UPDATE_MERGE:
+                return "MERGE";
+            case UPDATE_EXTEND_TO_CONFERENCE:
+                return "EXTEND_TO_CONFERENCE";
+            case UPDATE_UNSPECIFIED:
+                return "UNSPECIFIED";
+            default:
+                return "UNKNOWN";
+        }
+    }
+
+    /**
+     * Provides a string representation of the {@link ImsCall}.  Primarily intended for use in log
+     * statements.
+     *
+     * @return String representation of call.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ImsCall objId:");
+        sb.append(System.identityHashCode(this));
+        sb.append(" multiParty:");
+        sb.append(isMultiparty()?"Y":"N");
+        sb.append(" session:");
+        sb.append(mSession);
+        sb.append(" updateRequest:");
+        sb.append(updateRequestToString(mUpdateRequest));
+        sb.append(" transientSession:");
+        sb.append(mTransientConferenceSession);
+        sb.append("]");
+        return sb.toString();
     }
 }
