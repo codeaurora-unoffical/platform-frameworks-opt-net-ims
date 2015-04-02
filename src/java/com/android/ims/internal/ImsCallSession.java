@@ -23,6 +23,7 @@ import com.android.ims.ImsConferenceState;
 import com.android.ims.ImsReasonInfo;
 import com.android.ims.ImsStreamMediaProfile;
 import android.telecom.Connection;
+import com.android.ims.ImsSuppServiceNotification;
 
 /**
  * Provides the call initiation/termination, and media exchange between two IMS endpoints.
@@ -364,6 +365,26 @@ public class ImsCallSession {
         public void callSessionHandoverFailed(ImsCallSession session,
                                        int srcAccessTech, int targetAccessTech,
                                        ImsReasonInfo reasonInfo) {
+            // no-op
+        }
+
+        /**
+         * Called when the session supplementary service is received
+         *
+         * @param session the session object that carries out the IMS session
+         */
+        public void callSessionSuppServiceReceived(ImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo) {
+        }
+
+        /**
+         * Called when TTY mode of remote party changed
+         *
+         * @param session IMS session object
+         * @param mode TTY mode of remote party
+         */
+        public void callSessionTtyModeReceived(ImsCallSession session,
+                                       int mode) {
             // no-op
         }
     }
@@ -1175,6 +1196,9 @@ public class ImsCallSession {
             }
         }
 
+        /**
+         * Notifies of handover failure info for this call
+         */
         @Override
         public void callSessionHandoverFailed(IImsCallSession session,
                                        int srcAccessTech, int targetAccessTech,
@@ -1192,8 +1216,7 @@ public class ImsCallSession {
         public void callSessionTtyModeReceived(IImsCallSession session,
                 int mode) {
             if (mListener != null) {
-                //TODO: UI specific implementation.
-                //Vendor UI can listen to this callback to take action on received TTY mode.
+                mListener.callSessionTtyModeReceived(ImsCallSession.this, mode);
             }
         }
 
@@ -1216,5 +1239,33 @@ public class ImsCallSession {
                 //Vendor UI can listen to this callback to take action on failure.
             }
         }
+
+        @Override
+        public void callSessionSuppServiceReceived(IImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo ) {
+            if (mListener != null) {
+                mListener.callSessionSuppServiceReceived(ImsCallSession.this, suppServiceInfo);
+            }
+        }
+
+    }
+
+    /**
+     * Provides a string representation of the {@link ImsCallSession}.  Primarily intended for
+     * use in log statements.
+     *
+     * @return String representation of session.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ImsCallSession objId:");
+        sb.append(System.identityHashCode(this));
+        sb.append(" state:");
+        sb.append(State.toString(getState()));
+        sb.append(" callId:");
+        sb.append(getCallId());
+        sb.append("]");
+        return sb.toString();
     }
 }
