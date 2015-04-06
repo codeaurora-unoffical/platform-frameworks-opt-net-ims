@@ -27,6 +27,7 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.provider.Settings;
+import android.telecom.TelecomManager;
 import android.telephony.Rlog;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
@@ -246,6 +247,21 @@ public class ImsManager {
                     context.getContentResolver(),
                     android.provider.Settings.Global.ENHANCED_4G_MODE_ENABLED, ImsConfig.FeatureValueConstants.ON);
         return (enabled == 1)? true:false;
+    }
+
+    /**
+     * Indicates whether the call is non-TTY or if TTY - whether TTY on VoLTE is
+     * supported.
+     */
+    public static boolean isNonTtyOrTtyOnVolteEnabled(Context context) {
+        if (context.getResources().getBoolean(
+                com.android.internal.R.bool.config_carrier_volte_tty_supported)) {
+            return true;
+        }
+
+        return Settings.Secure.getInt(context.getContentResolver(),
+                Settings.Secure.PREFERRED_TTY_MODE, TelecomManager.TTY_MODE_OFF)
+                == TelecomManager.TTY_MODE_OFF;
     }
 
     /**
