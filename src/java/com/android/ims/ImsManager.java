@@ -783,6 +783,27 @@ public class ImsManager {
         }
     }
 
+    public void setAdvanced4GMode(boolean turnOn, ImsConfigListener icl) throws ImsException {
+        checkAndThrowExceptionIfServiceUnavailable();
+
+        try {
+            ImsConfig config = getConfigInterface();
+            if (config != null) {
+                config.setFeatureValue(ImsConfig.FeatureConstants.FEATURE_TYPE_VOICE_OVER_LTE,
+                        TelephonyManager.NETWORK_TYPE_LTE, turnOn ? 1 : 0, icl);
+            }
+        } catch (ImsException e) {
+            log("setAdvanced4GMode() : " + e);
+        }
+        if (turnOn) {
+            turnOnIms();
+        } else if (mContext.getResources().getBoolean(
+                com.android.internal.R.bool.imsServiceAllowTurnOff)) {
+            log("setAdvanced4GMode() : imsServiceAllowTurnOff -> turnOffIms");
+            turnOffIms();
+        }
+    }
+
     /**
      * Used for turning off IMS completely in order to make the device CSFB'ed.
      * Once turned off, all calls will be over CS.

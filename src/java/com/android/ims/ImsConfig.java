@@ -397,6 +397,8 @@ public class ImsConfig {
             Rlog.d(TAG, "getFeatureValue: feature = " + feature + ", network =" + network +
                     ", listener =" + listener);
         }
+        android.util.Log.d(TAG, "getFeatureValue: feature = " + feature + ", network =" + network +
+                    ", listener =" + listener);
         try {
             miConfig.getFeatureValue(feature, network, listener);
         } catch (RemoteException e) {
@@ -423,6 +425,8 @@ public class ImsConfig {
             Rlog.d(TAG, "setFeatureValue: feature = " + feature + ", network =" + network +
                     ", value =" + value + ", listener =" + listener);
         }
+        android.util.Log.d(TAG, "IMSCOnfig setFeatureValue: feature = " + feature + ", network =" + network +
+                    ", value =" + value + ", listener =" + listener);
         try {
             miConfig.setFeatureValue(feature, network, value, listener);
         } catch (RemoteException e) {
