@@ -47,6 +47,7 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
     private static final int MSG_CHANGE_CALL_DATA_USAGE = 5;
     private static final int MSG_CHANGE_CAMERA_CAPABILITIES = 6;
     private static final int MSG_CHANGE_VIDEO_QUALITY = 7;
+    private static final int MSG_CHANGE_ORIENTATION_MODE = 8;
 
     private final IImsVideoCallProvider mVideoCallProvider;
     private final ImsVideoCallCallback mBinder;
@@ -106,6 +107,11 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
             mHandler.obtainMessage(MSG_CHANGE_CAMERA_CAPABILITIES,
                     cameraCapabilities).sendToTarget();
         }
+
+        @Override
+        public void changeOrientationMode(int orientationMode) {
+            mHandler.obtainMessage(MSG_CHANGE_ORIENTATION_MODE, orientationMode, 0).sendToTarget();
+        }
     }
 
     /** Default handler used to consolidate binder method calls onto a single thread. */
@@ -150,6 +156,9 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
                     break;
                 case MSG_CHANGE_VIDEO_QUALITY:
                     changeVideoQuality(msg.arg1);
+                    break;
+                case MSG_CHANGE_ORIENTATION_MODE:
+                    changeOrientationMode(msg.arg1);
                     break;
                 default:
                     break;
