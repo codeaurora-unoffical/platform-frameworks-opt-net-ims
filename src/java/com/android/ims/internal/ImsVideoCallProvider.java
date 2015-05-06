@@ -250,4 +250,14 @@ public abstract class ImsVideoCallProvider {
             }
         }
     }
+
+    /** @see Connection.VideoProvider#changeOrientationMode */
+    public void changeOrientationMode(int orientationMode) {
+        if (mCallback != null) {
+            try {
+                mCallback.changeOrientationMode(orientationMode);
+            } catch (RemoteException ignored) {
+            }
+        }
+    }
 }
