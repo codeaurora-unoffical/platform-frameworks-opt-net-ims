@@ -387,6 +387,18 @@ public class ImsCallSession {
                                        int mode) {
             // no-op
         }
+
+        /**
+         * Called when session is informed with the reason for retry
+         * on other access technology.
+         *
+         * @param session IMS session object
+         * @param reasonInfo detailed reason of the retry
+         */
+        public void callSessionRetryErrorReceived(ImsCallSession session,
+                ImsReasonInfo reasonInfo) {
+            // no-op
+        }
     }
 
     private final IImsCallSession miSession;
@@ -1248,6 +1260,13 @@ public class ImsCallSession {
             }
         }
 
+        @Override
+        public void callSessionRetryErrorReceived(IImsCallSession session,
+                ImsReasonInfo reasonInfo) {
+            if (mListener != null) {
+                mListener.callSessionRetryErrorReceived(ImsCallSession.this, reasonInfo);
+            }
+        }
     }
 
     /**

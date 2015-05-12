@@ -418,6 +418,15 @@ public class ImsCall implements ICall {
         public void onCallSessionTtyModeReceived(ImsCall call, int mode) {
             // no-op
         }
+
+        /**
+         * Called when retry error is notified.
+         *
+         * @param session IMS session object
+         * @param reasonInfo
+         */
+        public void onCallRetryErrorReceived(ImsCall imsCall, ImsReasonInfo reasonInfo) {
+        }
     }
 
 
@@ -2986,6 +2995,29 @@ public class ImsCall implements ICall {
                     listener.onCallSessionTtyModeReceived(ImsCall.this, mode);
                 } catch (Throwable t) {
                     loge("callSessionTtyModeReceived :: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionRetryErrorReceived(ImsCallSession session,
+                ImsReasonInfo reasonInfo) {
+            if (DBG) {
+                log("callSessionRetryErrorReceived :: session=" + session +
+                         ", reasonInfo " + reasonInfo);
+            }
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallRetryErrorReceived(ImsCall.this, reasonInfo);
+                } catch (Throwable t) {
+                    loge("callSessionRetryErrorReceived :: ", t);
                 }
             }
         }
