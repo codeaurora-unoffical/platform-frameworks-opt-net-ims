@@ -378,6 +378,15 @@ public class ImsCall implements ICall {
         public void onCallSuppServiceReceived(ImsCall call,
             ImsSuppServiceNotification suppServiceInfo) {
         }
+
+        /**
+         * Called when retry error is notified.
+         *
+         * @param session IMS session object
+         * @param reasonInfo
+         */
+        public void onCallRetryErrorReceived(ImsCall imsCall, ImsReasonInfo reasonInfo) {
+        }
     }
 
     // List of update operation for IMS call control
@@ -2851,6 +2860,29 @@ public class ImsCall implements ICall {
                     listener.onCallSuppServiceReceived(ImsCall.this, suppServiceInfo);
                 } catch (Throwable t) {
                     loge("callSessionSuppServiceReceived :: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionRetryErrorReceived(ImsCallSession session,
+                ImsReasonInfo reasonInfo) {
+            if (DBG) {
+                log("callSessionRetryErrorReceived :: session=" + session +
+                         ", reasonInfo " + reasonInfo);
+            }
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallRetryErrorReceived(ImsCall.this, reasonInfo);
+                } catch (Throwable t) {
+                    loge("callSessionRetryErrorReceived :: ", t);
                 }
             }
         }
