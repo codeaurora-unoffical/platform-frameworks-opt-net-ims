@@ -384,9 +384,16 @@ public class ImsCall implements ICall {
         public void onCallSessionTtyModeReceived(ImsCall call, int mode) {
             // no-op
         }
+        /**
+         * Called when the call supp service is received
+         * The default implementation calls {@link #onCallStateChanged}.
+         *
+         * @param call the call object that carries out the IMS call
+         */
+        public void onCallSuppServiceReceived(ImsCall call,
+            ImsSuppServiceNotification suppServiceInfo) {
+        }
     }
-
-
 
     // List of update operation for IMS call control
     private static final int UPDATE_NONE = 0;
@@ -1839,12 +1846,12 @@ public class ImsCall implements ICall {
 
                 // Since this call is the foreground call that sent the merge
                 // request, ending signifies that the call successfully got
-                // merged into the conference call.
-                // NOTE: We cannot identify a genuinely dropped call at this
-                // point.
-                processMergeComplete();
-
-                return;
+                // merged into the conference call only if mTransientConferenceSession exists.
+                // Else this is a genuine call end of this session & callTerminated will be invoked.
+                if (mTransientConferenceSession != null) {
+                    processMergeComplete();
+                    return;
+                }
             }
 
             // If this condition is satisfied, this call is either a part of
@@ -2188,7 +2195,10 @@ public class ImsCall implements ICall {
         @Override
         public void callSessionTerminated(ImsCallSession session, ImsReasonInfo reasonInfo) {
             if (mSession != session) {
-                log("callSessionTerminated :: not supported for conference session=" + session);
+                if (isTransientConferenceSession(session)) {
+                    processMergeFailed(reasonInfo);
+                    log("callSessionTerminated :: for transient session");
+                }
                 return;
             }
 
@@ -2889,6 +2899,34 @@ public class ImsCall implements ICall {
                     listener.onCallSessionTtyModeReceived(ImsCall.this, mode);
                 } catch (Throwable t) {
                     loge("callSessionTtyModeReceived :: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionSuppServiceReceived(ImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo ) {
+            if (isTransientConferenceSession(session)) {
+                log("callSessionSuppServiceReceived :: not supported for transient conference"
+                        + " session=" + session);
+                return;
+            }
+            if (DBG) {
+                log("callSessionSuppServiceReceived :: session=" + session +
+                         ", suppServiceInfo" + suppServiceInfo);
+            }
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallSuppServiceReceived(ImsCall.this, suppServiceInfo);
+                } catch (Throwable t) {
+                    loge("callSessionSuppServiceReceived :: ", t);
                 }
             }
         }
