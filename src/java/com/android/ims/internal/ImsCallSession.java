@@ -378,7 +378,6 @@ public class ImsCallSession {
                                        int mode) {
             // no-op
         }
-
         /**
          * Called when the session supplementary service is received
          *
