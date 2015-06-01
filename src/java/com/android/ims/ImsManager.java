@@ -819,7 +819,9 @@ public class ImsManager {
         checkAndThrowExceptionIfServiceUnavailable();
 
         ImsConfig config = getConfigInterface();
-        if (config != null) {
+        boolean allowImsServiceTurnOff = mContext.getResources().getBoolean(
+                com.android.internal.R.bool.imsServiceAllowTurnOff);
+        if (config != null && (turnOn || !allowImsServiceTurnOff)) {
             config.setFeatureValue(ImsConfig.FeatureConstants.FEATURE_TYPE_VOICE_OVER_LTE,
                     TelephonyManager.NETWORK_TYPE_LTE, turnOn ? 1 : 0, null);
             if (isVtEnabledByPlatform(mContext)) {
@@ -831,8 +833,7 @@ public class ImsManager {
         }
         if (turnOn) {
             turnOnIms();
-        } else if (mContext.getResources().getBoolean(
-                com.android.internal.R.bool.imsServiceAllowTurnOff)) {
+        } else if (allowImsServiceTurnOff) {
             log("setAdvanced4GMode() : imsServiceAllowTurnOff -> turnOffIms");
             turnOffIms();
         }
