@@ -408,7 +408,6 @@ public class ImsCall implements ICall {
         public void onCallHandoverFailed(ImsCall imsCall, int srcAccessTech, int targetAccessTech,
             ImsReasonInfo reasonInfo) {
         }
-
         /**
          * Called when the call supp service is received
          * The default implementation calls {@link #onCallStateChanged}.
@@ -428,8 +427,6 @@ public class ImsCall implements ICall {
         public void onCallRetryErrorReceived(ImsCall imsCall, ImsReasonInfo reasonInfo) {
         }
     }
-
-
 
     // List of update operation for IMS call control
     private static final int UPDATE_NONE = 0;
