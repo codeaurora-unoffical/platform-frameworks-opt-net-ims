@@ -35,8 +35,6 @@ import android.telecom.TelecomManager;
 import android.telephony.Rlog;
 import android.util.Log;
 import android.widget.Toast;
-import android.media.ToneGenerator;
-import android.media.AudioManager;
 
 import com.android.ims.internal.CallGroup;
 import com.android.ims.internal.CallGroupManager;
@@ -3022,7 +3020,7 @@ public class ImsCall implements ICall {
             }
             if (mContext.getResources().getBoolean(
                             com.android.internal.R.bool.config_regional_alerts_for_drop_call)) {
-                startAlert();
+                ImsCallHelper.startAlert(mContext);
             }
         }
 
@@ -3124,65 +3122,5 @@ public class ImsCall implements ICall {
         sb.append(mTransientConferenceSession);
         sb.append("]");
         return sb.toString();
-    }
-
-    private android.os.Handler mWifiAlertHandler;
-    private static final long RESET_TIME = 30 * 60 * 1000;
-    private static final int ALERT_HANDOVER = 1;
-    private static final int RESET_ALERT_HANDOVER_TIME = 2;
-
-    private void startAlert() {
-        if(mWifiAlertHandler == null){
-            mWifiAlertHandler = new android.os.Handler(){
-                private int mAlterTimes = 0;
-                public void handleMessage(Message msg){
-                    switch (msg.what) {
-                    case ALERT_HANDOVER:
-                        if(mAlterTimes == 3){
-                            return;
-                        }
-                        this.removeMessages(RESET_ALERT_HANDOVER_TIME);
-                        this.sendEmptyMessageDelayed(RESET_ALERT_HANDOVER_TIME, RESET_TIME);
-                        startBeepForAlert();
-                        mAlterTimes++;
-                        break;
-
-                    case RESET_ALERT_HANDOVER_TIME:
-                        mAlterTimes = 0;
-                        break;
-
-                    default:
-                        break;
-                    }
-                }
-            };
-        }
-        mWifiAlertHandler.sendEmptyMessage(ALERT_HANDOVER);
-    }
-
-    private void startBeepForAlert(){
-        new Thread() {
-            public void run() {
-                // Used the 40 percentage of maximum volume
-                ToneGenerator mTone = new ToneGenerator(
-                        AudioManager.STREAM_VOICE_CALL, 40);
-                try {
-                    mTone.startTone(ToneGenerator.TONE_PROP_ACK);
-                    Thread.sleep(1000);
-                    mTone.stopTone();
-                } catch (Exception e) {
-                    Log.i(TAG, "Exception caught when generator sleep " + e);
-                } finally {
-                    if (mTone != null) {
-                        mTone.release();
-                    }
-                }
-            };
-        }.start();
-        Toast.makeText(
-                mContext,
-                mContext.getResources().getString(
-                        com.android.internal.R.string.config_regional_alerts_for_drop_call_toast),
-                Toast.LENGTH_LONG).show();
     }
 }
