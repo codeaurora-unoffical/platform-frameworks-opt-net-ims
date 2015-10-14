@@ -345,6 +345,25 @@ public class ImsManager {
                         com.android.internal.R.bool.config_carrier_cs_retry_available);
     }
 
+    /**
+     * Set WFC settings
+     */
+    public static void setWfcSetting(Context context, int wifiCallingStatus) {
+        android.provider.Settings.Global.putInt(
+                context.getContentResolver(),
+                android.provider.Settings.Global.WFC_IMS_ENABLED, wifiCallingStatus);
+    }
+
+    /**
+     * Return user preferred WFC setting
+     */
+    public static boolean isWfcEnabledByUser(Context context) {
+        int enabled = android.provider.Settings.Global.getInt(context.getContentResolver(),
+                android.provider.Settings.Global.WFC_IMS_ENABLED,
+                ImsConfig.WifiCallingValueConstants.OFF);
+        return (enabled == ImsConfig.WifiCallingValueConstants.ON) ? true : false;
+    }
+
     private ImsManager(Context context, int phoneId) {
         mContext = context;
         mPhoneId = phoneId;
