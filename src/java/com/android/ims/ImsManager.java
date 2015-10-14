@@ -250,6 +250,28 @@ public class ImsManager {
     }
 
     /**
+     * Change persistent Enhanced 4G LTE Mode setting
+     */
+    public static void setEnhanced4gLteModeSetting(Context context, boolean enabled) {
+        int value = enabled ? 1 : 0;
+        android.provider.Settings.Global.putInt(
+                context.getContentResolver(),
+                android.provider.Settings.Global.ENHANCED_4G_MODE_ENABLED, value);
+
+        if (isNonTtyOrTtyOnVolteEnabled(context)) {
+            ImsManager imsManager = ImsManager.getInstance(context,
+                    SubscriptionManager.getDefaultVoicePhoneId());
+            if (imsManager != null) {
+                try {
+                    imsManager.setAdvanced4GMode(enabled);
+                } catch (ImsException ie) {
+                    // do nothing
+                }
+            }
+        }
+    }
+
+    /**
      * Indicates whether the call is non-TTY or if TTY - whether TTY on VoLTE is
      * supported.
      */
