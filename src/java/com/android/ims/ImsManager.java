@@ -583,15 +583,13 @@ public class ImsManager {
      * @throws ImsException
      */
     private boolean updateVideoCallFeatureValue() throws ImsException {
-        boolean available = isVtEnabledByPlatform(mContext);
-        SharedPreferences sharedPrefs =
-                PreferenceManager.getDefaultSharedPreferences(mContext);
-        boolean enabled = isEnhanced4gLteModeSettingEnabledByUser(mContext) &&
-                sharedPrefs.getBoolean(PREF_ENABLE_VIDEO_CALLING_KEY, true);
-        boolean isNonTty = Settings.Secure.getInt(mContext.getContentResolver(),
+        final boolean available = isVtEnabledByPlatform(mContext);
+        final boolean enabled = isEnhanced4gLteModeSettingEnabledByUser(mContext) &&
+                isVtEnabledByUser(mContext);
+        final boolean isNonTty = Settings.Secure.getInt(mContext.getContentResolver(),
                 Settings.Secure.PREFERRED_TTY_MODE, TelecomManager.TTY_MODE_OFF)
                 == TelecomManager.TTY_MODE_OFF;
-        boolean turnOn = available && enabled && isNonTty;
+        final boolean turnOn = available && enabled && isNonTty;
 
         log("updateVideoCallFeatureValue: available = " + available
                 + ", enabled = " + enabled
