@@ -586,9 +586,7 @@ public class ImsManager {
         final boolean available = isVtEnabledByPlatform(mContext);
         final boolean enabled = isEnhanced4gLteModeSettingEnabledByUser(mContext) &&
                 isVtEnabledByUser(mContext);
-        final boolean isNonTty = Settings.Secure.getInt(mContext.getContentResolver(),
-                Settings.Secure.PREFERRED_TTY_MODE, TelecomManager.TTY_MODE_OFF)
-                == TelecomManager.TTY_MODE_OFF;
+        final boolean isNonTty = isNonTtyOrTtyOnVolteEnabled(mContext);
         final boolean turnOn = available && enabled && isNonTty;
 
         log("updateVideoCallFeatureValue: available = " + available
