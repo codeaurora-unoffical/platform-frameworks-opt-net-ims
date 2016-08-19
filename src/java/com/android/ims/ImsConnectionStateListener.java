@@ -74,4 +74,14 @@ public class ImsConnectionStateListener {
     public void onVoiceMessageCountChanged(int count) {
         // no-op
     }
+
+    /**
+     * Called when the device is connected to the IMS network.
+     *
+     * @param imsRadioTech the radio access technology. Valid values are {@code
+     * RIL_RADIO_TECHNOLOGY_*} defined in {@link ServiceState}.
+     */
+    public void onImsConnectedWithRadioTech(int imsRadioTech) {
+        // no-op
+    }
 }

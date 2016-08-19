@@ -1227,7 +1227,9 @@ public class ImsManager {
             }
 
             if (mListener != null) {
+                /* For backward compatibility, continue indicating via onImsConnected() */
                 mListener.onImsConnected();
+                mListener.onImsConnectedWithRadioTech(imsRadioTech);
             }
         }
 
@@ -1283,6 +1285,10 @@ public class ImsManager {
                     serviceClass + ", event=" + event);
 
             if (mListener != null) {
+                /**
+                 * TODO: No indication via this API.
+                 * When used, make sure to also call onImsConnectedWithRadioTech()
+                 */
                 mListener.onImsConnected();
             }
         }
