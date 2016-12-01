@@ -67,6 +67,7 @@ public class ImsManager {
     public static final int PROPERTY_DBG_VT_AVAIL_OVERRIDE_DEFAULT = 0;
     public static final String PROPERTY_DBG_WFC_AVAIL_OVERRIDE = "persist.dbg.wfc_avail_ovr";
     public static final int PROPERTY_DBG_WFC_AVAIL_OVERRIDE_DEFAULT = 0;
+    public static final String PROPERTY_IMS_PHONE_ID = "ril.ims.phoneid";
 
     /**
      * For accessing the IMS related service.
@@ -998,10 +999,13 @@ public class ImsManager {
         CarrierConfigManager configManager = (CarrierConfigManager) context.getSystemService(
                 Context.CARRIER_CONFIG_SERVICE);
         PersistableBundle b = null;
-        int[] subId = SubscriptionManager.getSubId(mImsPhoneId);
+        int imsPhoneId = SystemProperties.getInt(PROPERTY_IMS_PHONE_ID,
+                SubscriptionManager.INVALID_PHONE_INDEX);
+        if (DBG) log("SystemProperties' imsPhoneId = " + imsPhoneId);
         SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
-        if (configManager != null && subId != null && subscriptionManager != null &&
-                subscriptionManager.isActiveSubId(subId[0])) {
+        int[] subId = SubscriptionManager.getSubId(imsPhoneId);
+        if ((configManager != null) && (subId != null) && (subscriptionManager != null)
+                && subscriptionManager.isActiveSubId(subId[0])) {
             b = configManager.getConfigForSubId(subId[0]);
         }
         if (b != null) {
