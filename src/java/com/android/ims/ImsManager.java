@@ -539,9 +539,15 @@ public class ImsManager {
 
                 if (turnOn) {
                     imsManager.turnOnIms();
-                } else if (getBooleanCarrierConfig(context,
-                        CarrierConfigManager.KEY_CARRIER_ALLOW_TURNOFF_IMS_BOOL)) {
-                    imsManager.turnOffIms();
+                } else {
+                    final boolean isImsTurnOffAllowed = getBooleanCarrierConfig(context,
+                            CarrierConfigManager.KEY_CARRIER_ALLOW_TURNOFF_IMS_BOOL);
+                    log("updateImsServiceConfig: isImsTurnOffAllowed = " + isImsTurnOffAllowed);
+                    if (isImsTurnOffAllowed) {
+                        imsManager.turnOffIms();
+                    } else {
+                        imsManager.turnOnIms();
+                    }
                 }
 
                 imsManager.mConfigUpdated = true;
