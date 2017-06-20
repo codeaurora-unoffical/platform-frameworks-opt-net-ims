@@ -434,6 +434,18 @@ public class ImsCall implements ICall {
         }
 
         /**
+         * Called when session access technology may change to LTE soon but mobile data being off
+         * may block this handover.
+         *
+         * @param imsCall call that failed the handover.
+         * @param srcAccessTech original access technology
+         * @param targetAccessTech new access technology
+         */
+        public void onCallSessionMayHandover(ImsCall imsCall, int srcAccessTech,
+                                           int targetAccessTech) {
+        }
+
+        /**
          * Notifies of a change to the multiparty state for this {@code ImsCall}.
          *
          * @param imsCall The IMS call.
@@ -1067,6 +1079,7 @@ public class ImsCall implements ICall {
 
         synchronized(mLockObj) {
             mSession = session;
+            mIsConferenceHost = true;
 
             try {
                 session.setListener(createCallSessionListener());
@@ -2204,6 +2217,11 @@ public class ImsCall implements ICall {
                         session);
                 return;
             }
+            if (mIsConferenceHost) {
+                // If the dial request was a group calling one, this call would have
+                // been marked the conference host as part of the request.
+                mIsConferenceHost = false;
+            }
 
             ImsCall.Listener listener;
 
@@ -2925,6 +2943,28 @@ public class ImsCall implements ICall {
                         reasonInfo);
                 } catch (Throwable t) {
                     loge("callSessionHandoverFailed :: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionMayHandover(ImsCallSession session, int srcAccessTech,
+                                              int targetAccessTech) {
+            loge("callSessionMayHandover :: session=" + session + ", srcAccessTech=" +
+                    srcAccessTech + ", targetAccessTech=" + targetAccessTech);
+
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallSessionMayHandover(ImsCall.this, srcAccessTech,
+                            targetAccessTech);
+                } catch (Throwable t) {
+                    loge("callSessionMayHandover :: ", t);
                 }
             }
         }
