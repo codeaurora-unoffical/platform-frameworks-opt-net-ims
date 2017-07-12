@@ -291,7 +291,15 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
             Log.i(this, "onSendSessionModifyRequest: fromVideoState=%s, toVideoState=%s; ",
                     VideoProfile.videoStateToString(fromProfile.getVideoState()),
                     VideoProfile.videoStateToString(toProfile.getVideoState()));
-            if (fromVideoState == toVideoState) {
+
+            // If remote device is in background, the call will be in paused state.
+            // In that state if this device also goes to background, we need to inform modem that
+            // we are currently multi tasking. This is needed so that when remote device tries
+            // to resume video, it should remain in paused state as long as we are multi tasking.
+            boolean isPauseSpecialCase = VideoProfile.isPaused(fromVideoState) &&
+                    VideoProfile.isPaused(toVideoState);
+
+            if (!isPauseSpecialCase && (fromVideoState == toVideoState)) {
                 return;
             }
             mVideoCallProvider.sendSessionModifyRequest(fromProfile, toProfile);
@@ -541,5 +549,20 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
      */
     public void onCallStateChanged(int newState) {
         mVideoPauseTracker.onCallStateChanged(newState);
+    }
+
+    /**
+     * Called by {@code ImsPhoneConnection} when there is a change to the video state of the call.
+     * Informs the video pause tracker that the video is no longer paused.  This ensures that
+     * subsequent pause requests are not filtered out.
+     *
+     * @param newVideoState The new video state.
+     */
+    public void onVideoStateChanged(int newVideoState) {
+        if (mVideoPauseTracker.isPaused() && !VideoProfile.isPaused(newVideoState)) {
+            Log.i(this, "onVideoStateChanged: newVideoState=%s, clearing pending pause requests.",
+                    VideoProfile.videoStateToString(newVideoState));
+            mVideoPauseTracker.clearPauseRequests();
+        }
     }
 }
