@@ -69,6 +69,7 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
             new ConcurrentHashMap<ImsVideoProviderWrapperCallback, Boolean>(8, 0.9f, 1));
     private VideoPauseTracker mVideoPauseTracker = new VideoPauseTracker();
     private boolean mUseVideoPauseWorkaround = false;
+    private int mCurrentVideoState;
 
     private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
         @Override
@@ -291,7 +292,15 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
             Log.i(this, "onSendSessionModifyRequest: fromVideoState=%s, toVideoState=%s; ",
                     VideoProfile.videoStateToString(fromProfile.getVideoState()),
                     VideoProfile.videoStateToString(toProfile.getVideoState()));
-            if (fromVideoState == toVideoState) {
+
+            // If remote device is in background, the call will be in paused state.
+            // In that state if this device also goes to background, we need to inform modem that
+            // we are currently multi tasking. This is needed so that when remote device tries
+            // to resume video, it should remain in paused state as long as we are multi tasking.
+            boolean isPauseSpecialCase = VideoProfile.isPaused(fromVideoState) &&
+                    VideoProfile.isPaused(toVideoState);
+
+            if (!isPauseSpecialCase && (fromVideoState == toVideoState)) {
                 return;
             }
             mVideoCallProvider.sendSessionModifyRequest(fromProfile, toProfile);
@@ -534,5 +543,35 @@ public class ImsVideoCallProviderWrapper extends Connection.VideoProvider {
 
     public void setUseVideoPauseWorkaround(boolean useVideoPauseWorkaround) {
         mUseVideoPauseWorkaround = useVideoPauseWorkaround;
+    }
+
+    /**
+     * This is invoked when the state of the call associated changes.
+     */
+    public void onCallStateChanged(int newState) {
+        mVideoPauseTracker.onCallStateChanged(newState);
+    }
+
+    /**
+     * Called by {@code ImsPhoneConnection} when there is a change to the video state of the call.
+     * Informs the video pause tracker that the video is no longer paused.  This ensures that
+     * subsequent pause requests are not filtered out.
+     *
+     * @param newVideoState The new video state.
+     */
+    public void onVideoStateChanged(int newVideoState) {
+        if (VideoProfile.isPaused(mCurrentVideoState) && !VideoProfile.isPaused(newVideoState)) {
+            // New video state is un-paused, so clear any pending pause requests.
+            Log.i(this, "onVideoStateChanged: currentVideoState=%s, newVideoState=%s, "
+                            + "clearing pending pause requests.",
+                    VideoProfile.videoStateToString(mCurrentVideoState),
+                    VideoProfile.videoStateToString(newVideoState));
+            mVideoPauseTracker.clearPauseRequests();
+        } else {
+            Log.d(this, "onVideoStateChanged: currentVideoState=%s, newVideoState=%s",
+                    VideoProfile.videoStateToString(mCurrentVideoState),
+                    VideoProfile.videoStateToString(newVideoState));
+        }
+        mCurrentVideoState = newVideoState;
     }
 }
