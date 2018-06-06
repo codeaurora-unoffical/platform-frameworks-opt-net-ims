@@ -35,6 +35,7 @@ import android.telecom.TelecomManager;
 import android.telephony.CarrierConfigManager;
 import android.telephony.Rlog;
 import android.telephony.ServiceState;
+import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.telephony.ims.ImsServiceProxy;
@@ -63,6 +64,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.List;
 
 /**
  * Provides APIs for IMS services, such as initiating IMS calls, and provides access to
@@ -729,6 +731,39 @@ public class ImsManager {
                         CarrierConfigManager.KEY_CARRIER_DEFAULT_WFC_IMS_ENABLED_BOOL) ?
                         ImsConfig.FeatureValueConstants.ON : ImsConfig.FeatureValueConstants.OFF);
         return (enabled == 1) ? true : false;
+    }
+
+    public static boolean displayWfcMode(Context context, boolean update) {
+        boolean displayWfcMode = true;
+        List<SubscriptionInfo> subInfoList =
+                SubscriptionManager.from(context).getActiveSubscriptionInfoList();
+        if (subInfoList != null) {
+            CarrierConfigManager configManager = (CarrierConfigManager) context.getSystemService(
+                    Context.CARRIER_CONFIG_SERVICE);
+            for (SubscriptionInfo sir : subInfoList) {
+                int subId = sir.getSubscriptionId();
+                if (SubscriptionManager.isValidSubscriptionId(subId)) {
+                    PersistableBundle b = null;
+                    if (configManager != null) {
+                        b = configManager.getConfigForSubId(subId);
+                    }
+                    if (b != null) {
+                        displayWfcMode = b.getBoolean("config_display_wfc_mode", true);
+                    }
+                    if (!displayWfcMode) {
+                        if (update) {
+                            android.provider.Settings.Global.putInt(context.getContentResolver(),
+                                    android.provider.Settings.Global.WFC_IMS_MODE, b.getInt(
+                                    CarrierConfigManager.KEY_CARRIER_DEFAULT_WFC_IMS_MODE_INT));
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            loge("displayWfcMode: Invalid SubscriptionInfo");
+        }
+        return displayWfcMode;
     }
 
     /**
@@ -1501,6 +1536,7 @@ public class ImsManager {
         boolean isNetworkRoaming = telephonyManager.isNetworkRoaming(subId);
         updateDefaultWfcModeForSlot();
         int mode = getWfcModeForSlot(isNetworkRoaming);
+        displayWfcMode(mContext, true);
         boolean isFeatureOn = available && enabled;
 
         log("updateWfcFeatureAndProvisionedValues: available = " + available
