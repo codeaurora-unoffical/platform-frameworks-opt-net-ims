@@ -35,6 +35,7 @@ import android.telephony.Rlog;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import android.telephony.CallQuality;
 import android.telephony.ServiceState;
 import android.telephony.ims.ImsCallProfile;
 import android.telephony.ims.ImsConferenceState;
@@ -474,6 +475,24 @@ public class ImsCall implements ICall {
          *      otherwise.
          */
         public void onMultipartyStateChanged(ImsCall imsCall, boolean isMultiParty) {
+        }
+
+        /**
+         * Called when rtt call audio indicator has changed.
+         *
+         * @param imsCall ImsCall object
+         * @param profile updated ImsStreamMediaProfile profile.
+         */
+        public void onRttAudioIndicatorChanged(ImsCall imsCall, ImsStreamMediaProfile profile) {
+        }
+
+        /**
+         * Called when the call quality has changed.
+         *
+         * @param imsCall ImsCall object
+         * @param callQuality the updated CallQuality
+         */
+        public void onCallQualityChanged(ImsCall imsCall, CallQuality callQuality) {
         }
 
         /**
@@ -2656,17 +2675,6 @@ public class ImsCall implements ICall {
             return;
         }
 
-        /*
-         * This method check if session exists as a session on the current
-         * ImsCall or its counterpart if it is in the process of a conference
-         */
-        private boolean doesCallSessionExistsInMerge(ImsCallSession cs) {
-            String callId = cs.getCallId();
-            return ((isMergeHost() && Objects.equals(mMergePeer.mSession.getCallId(), callId)) ||
-                    (isMergePeer() && Objects.equals(mMergeHost.mSession.getCallId(), callId)) ||
-                    Objects.equals(mSession.getCallId(), callId));
-        }
-
         /**
          * We received a callback from ImsCallSession that merge completed.
          * @param newSession - this session can have 2 values based on the below scenarios
@@ -2700,8 +2708,7 @@ public class ImsCall implements ICall {
             } else {
                 // Handles case 1, 2, 3
                 if (newSession != null) {
-                    mTransientConferenceSession = doesCallSessionExistsInMerge(newSession) ?
-                            null: newSession;
+                    mTransientConferenceSession = newSession;
                 }
                 // Handles case 5
                 processMergeComplete();
@@ -3222,7 +3229,6 @@ public class ImsCall implements ICall {
             }
         }
 
-        @Override
         public void callSessionPropertyChanged(int property) {
             ImsCall.Listener listener;
 
@@ -3235,6 +3241,40 @@ public class ImsCall implements ICall {
                     listener.onCallSessionPropertyChanged(ImsCall.this, property);
                 } catch (Throwable t) {
                     loge("callSessionPropertyChanged:: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callSessionRttAudioIndicatorChanged(ImsStreamMediaProfile profile) {
+            ImsCall.Listener listener;
+
+            synchronized(ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onRttAudioIndicatorChanged(ImsCall.this, profile);
+                } catch (Throwable t) {
+                    loge("callSessionRttAudioIndicatorChanged:: ", t);
+                }
+            }
+        }
+
+        @Override
+        public void callQualityChanged(CallQuality callQuality) {
+            ImsCall.Listener listener;
+
+            synchronized (ImsCall.this) {
+                listener = mListener;
+            }
+
+            if (listener != null) {
+                try {
+                    listener.onCallQualityChanged(ImsCall.this, callQuality);
+                } catch (Throwable t) {
+                    loge("callQualityChanged:: ", t);
                 }
             }
         }
