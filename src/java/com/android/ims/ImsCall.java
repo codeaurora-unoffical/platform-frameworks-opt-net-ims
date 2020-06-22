@@ -2026,6 +2026,10 @@ public class ImsCall implements ICall {
             }
         }
 
+        //Update CallProfile received as part of call end which will update the
+        //call extras if any added as part of call end indication.
+        updateCallProfile();
+
         if (listener != null) {
             try {
                 listener.onCallTerminated(ImsCall.this, reasonInfo);
@@ -3707,7 +3711,8 @@ public class ImsCall implements ICall {
      * @param profile The current {@link ImsCallProfile} for the call.
      */
     private void trackVideoStateHistory(ImsCallProfile profile) {
-        mWasVideoCall = mWasVideoCall || profile.isVideoCall();
+        mWasVideoCall = mWasVideoCall
+                || profile != null ? profile.isVideoCall() : false;
     }
 
     /**
